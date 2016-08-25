@@ -16,7 +16,7 @@ func TestCreateAndPrintReview(t *testing.T) {
 
 	r := NewReview(
 		created,
-		"Jon",
+		GetProfessional("Jon100"),
 		SourceSolicited,
 		"LB3-TYU",
 		50,
@@ -25,17 +25,17 @@ func TestCreateAndPrintReview(t *testing.T) {
 	assert.NotNil(t, r)
 
 	// Before processed by ranker, review will have 100 score
-	s := "Info: Jon has a trusted review score of 100"
+	s := "Info: Jon100 has a trusted review score of 100"
 	assert.Equal(t, s, r.String())
 }
 
 func TestReviewFromString(t *testing.T) {
-	source := "12th July 12:04, Jon, solicited, LB3‐TYU, 50 words, *****"
+	source := "12th July 12:04, Jon101, solicited, LB3‐TYU, 50 words, *****"
 	r, err := NewReviewFromString(source)
 	assert.Nil(t, err)
 	assert.NotNil(t, r)
 
 	// Before processed by ranker, review will have 100 score
-	s := "Info: Jon has a trusted review score of 100"
+	s := "Info: Jon101 has a trusted review score of 100"
 	assert.Equal(t, s, r.String())
 }

@@ -2,7 +2,6 @@ package main
 
 import (
 	"errors"
-	"fmt"
 	"strings"
 	"time"
 )
@@ -24,71 +23,31 @@ const (
 	SourceMonkey
 )
 
-const (
-	// StatusLevelInfo defines minimum score for Info level
-	StatusLevelInfo float32 = 70
-	// StatusLevelWarning defines minimum score for Warning level
-	StatusLevelWarning float32 = 50
-)
-
-// Status is a type defining status of the reviwe
-type Status int
-
-const (
-	// StatusInfo means review is valid
-	StatusInfo Status = iota
-	// StatusWarning means review should be investigated
-	StatusWarning
-	// StatusAlert means review should not be trusted
-	StatusAlert
-	// StatusInvalid means review is not valid
-	StatusInvalid
-)
-
-func (s Status) String() string {
-	switch s {
-	case StatusInfo:
-		return "Info"
-	case StatusWarning:
-		return "Warning"
-	case StatusAlert:
-		return "Alert"
-	case StatusInvalid:
-		return "Invalid"
-	}
-	return "Unknown"
-}
-
 // Review defines review attributes
 type Review struct {
-	CreatedAt time.Time `json:"time"`
-	Author    string    `json:"author"`
-	Source    Source    `json:"source"`
-	Device    string    `json:"device"`
-	Words     int       `json:"words"`
-	Rating    int       `json:"rating"`
-
-	status Status  `json:"status"`
-	score  float32 `json:"score"`
+	CreatedAt    time.Time     `json:"time"`
+	Professional *Professional `json:"professional"`
+	Source       Source        `json:"source"`
+	Device       string        `json:"device"`
+	Words        int           `json:"words"`
+	Rating       int           `json:"rating"`
 }
 
 // NewReview creates new instance of Review
 func NewReview(createdAt time.Time,
-	author string,
+	professional *Professional,
 	source Source,
 	device string,
 	words int,
 	rating int) *Review {
 	r := &Review{
-		CreatedAt: createdAt,
-		Author:    author,
-		Source:    source,
-		Device:    device,
-		Words:     words,
-		Rating:    rating,
+		CreatedAt:    createdAt,
+		Professional: professional,
+		Source:       source,
+		Device:       device,
+		Words:        words,
+		Rating:       rating,
 	}
-
-	r.SetScore(100)
 	return r
 }
 
@@ -96,7 +55,6 @@ func NewReview(createdAt time.Time,
 // string should be in following format:
 // 12th July 12:04, Jon, solicited, LB3‐TYU, 50 words, *****
 func NewReviewFromString(input string) (r *Review, err error) {
-	fmt.Printf("[%s]", input)
 	// split string by ,
 	fields := strings.FieldsFunc(input, func(c rune) bool {
 		return c == ','
@@ -125,6 +83,8 @@ func NewReviewFromString(input string) (r *Review, err error) {
 	rating := 0
 	device := ""
 
+	professional := GetProfessional(fields[1])
+
 	if source != SourceMonkey {
 		words, err = stringToWords(fields[4])
 		if err != nil {
@@ -141,7 +101,7 @@ func NewReviewFromString(input string) (r *Review, err error) {
 
 	r = NewReview(
 		createdAt,
-		fields[1],
+		professional,
 		source,
 		device,
 		words,
@@ -151,42 +111,9 @@ func NewReviewFromString(input string) (r *Review, err error) {
 	return
 }
 
-// SetScore sets score of the review and updates review status accordingly
-func (r *Review) SetScore(score float32) {
-	r.score = score
-	if r.score >= StatusLevelInfo {
-		r.status = StatusInfo
-		return
-	}
-	if r.score >= StatusLevelWarning {
-		r.status = StatusWarning
-		return
-	}
-	r.status = StatusAlert
-}
-
-// GetScore return current review score
-func (r Review) GetScore() float32 {
-	return r.score
-}
-
-// GetStatus returns current review status
-func (r Review) GetStatus() Status {
-	return r.status
-}
-
 func (r Review) String() string {
 	if r.Source == SourceMonkey {
-		return "Could not read summary data"
+		return "Could not read review summary data"
 	}
-	switch r.status {
-	case StatusInfo:
-		fallthrough
-	case StatusWarning:
-		return fmt.Sprintf("%s: %s has a trusted review score of %2.f", r.status, r.Author, r.score)
-	case StatusAlert:
-		return fmt.Sprintf("%s: %s has been de-activated due to a low trusted review score", r.status, r.Author)
-	}
-
-	return ""
+	return r.Professional.String()
 }
