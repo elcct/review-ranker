@@ -46,14 +46,14 @@ type Professional struct {
 	score  float64 `json:"score"`
 }
 
-// SetScore sets score of the review and updates review status accordingly
+// SetScore sets score of the professional and updates status accordingly
 func (p *Professional) SetScore(score float64) {
 	p.score = score
 	p.sanitizeScore()
 	p.updateStatus()
 }
 
-// AdjustScore adjusts score by fraction of score
+// AdjustScore adjusts score by percentage (0.01 = 1%)
 func (p *Professional) AdjustScore(f float64) {
 	p.score += f * 100
 	p.sanitizeScore()
@@ -81,12 +81,12 @@ func (p *Professional) updateStatus() {
 	p.status = StatusAlert
 }
 
-// GetScore return current review score
+// GetScore return current score
 func (p Professional) GetScore() float64 {
 	return p.score
 }
 
-// GetStatus returns current review status
+// GetStatus returns current status
 func (p Professional) GetStatus() Status {
 	return p.status
 }
