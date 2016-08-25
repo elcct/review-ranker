@@ -2,6 +2,7 @@ package main
 
 import (
 	"errors"
+	"fmt"
 	"strconv"
 	"strings"
 	"time"
@@ -16,13 +17,15 @@ var (
 
 // parseDate transforms the input string to be suitable for time.Parse method
 // and then uses that method to convert date to time.Time type
+// TODO: optimize this :)
 func parseDate(date string) (time.Time, error) {
-	cleanDate := strings.Replace(date, "nd", "", -1)
-	cleanDate = strings.Replace(cleanDate, "st", "", -1)
-	cleanDate = strings.Replace(cleanDate, "rd", "", -1)
-	cleanDate = strings.Replace(cleanDate, "th", "", -1)
+	fields := strings.Fields(date)
+	cleanDate := strings.Replace(fields[0], "nd", "", 1)
+	cleanDate = strings.Replace(cleanDate, "st", "", 1)
+	cleanDate = strings.Replace(cleanDate, "rd", "", 1)
+	cleanDate = strings.Replace(cleanDate, "th", "", 1)
 
-	return time.Parse("2 January 15:04", cleanDate)
+	return time.Parse("2 January 15:04", fmt.Sprintf("%s %s %s", cleanDate, fields[1], fields[2]))
 }
 
 func stringToSource(s string) (Source, error) {

@@ -1,9 +1,15 @@
 package main
 
 import (
+	"errors"
 	"fmt"
 	"strings"
 	"time"
+)
+
+var (
+	// ErrInvalidString means that we can't create Review from given input string
+	ErrInvalidString = errors.New("Review couldn't be parsed, invalid input string.")
 )
 
 // Source is a type that defines where review comes from
@@ -89,11 +95,16 @@ func NewReview(createdAt time.Time,
 // NewReviewFromString creates new review from string
 // string should be in following format:
 // 12th July 12:04, Jon, solicited, LB3‐TYU, 50 words, *****
-func NewReviewFromString(input string) (*Review, error) {
+func NewReviewFromString(input string) (r *Review, err error) {
+	fmt.Printf("[%s]", input)
 	// split string by ,
 	fields := strings.FieldsFunc(input, func(c rune) bool {
 		return c == ','
 	})
+
+	if len(fields) < 2 {
+		return nil, ErrInvalidString
+	}
 
 	// clean each field
 	for i := range fields {
@@ -110,26 +121,34 @@ func NewReviewFromString(input string) (*Review, error) {
 		return nil, err
 	}
 
-	words, err := stringToWords(fields[4])
-	if err != nil {
-		return nil, err
+	words := 0
+	rating := 0
+	device := ""
+
+	if source != SourceMonkey {
+		words, err = stringToWords(fields[4])
+		if err != nil {
+			return nil, err
+		}
+
+		rating, err = stringToRating(fields[5])
+		if err != nil {
+			return nil, err
+		}
+
+		device = fields[3]
 	}
 
-	rating, err := stringToRating(fields[5])
-	if err != nil {
-		return nil, err
-	}
-
-	r := NewReview(
+	r = NewReview(
 		createdAt,
 		fields[1],
 		source,
-		fields[3],
+		device,
 		words,
 		rating,
 	)
 
-	return r, nil
+	return
 }
 
 // SetScore sets score of the review and updates review status accordingly
