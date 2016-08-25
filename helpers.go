@@ -1,8 +1,17 @@
 package main
 
 import (
+	"errors"
+	"strconv"
 	"strings"
 	"time"
+)
+
+var (
+	// ErrSourceUnknown means string has no known Source representation
+	ErrSourceUnknown = errors.New("Source unknown")
+	// ErrInvalidWords means string containing number of words is invalid
+	ErrInvalidWords = errors.New("Can't parse words value")
 )
 
 // parseDate transforms the input string to be suitable for time.Parse method
@@ -14,4 +23,32 @@ func parseDate(date string) (time.Time, error) {
 	cleanDate = strings.Replace(cleanDate, "th", "", -1)
 
 	return time.Parse("2 January 15:04", cleanDate)
+}
+
+func stringToSource(s string) (Source, error) {
+	switch s {
+	case "solicited":
+		return SourceSolicited, nil
+	case "unsolicited":
+		return SourceUnsolicited, nil
+	case "monkey":
+		return SourceMonkey, nil
+	}
+	return SourceMonkey, ErrSourceUnknown
+}
+
+func stringToWords(s string) (int, error) {
+	f := strings.Fields(s)
+	if len(f) > 1 {
+		i, err := strconv.Atoi(f[0])
+		if err != nil {
+			return 0, err
+		}
+		return i, nil
+	}
+	return 0, ErrInvalidWords
+}
+
+func stringToRating(s string) (int, error) {
+	return len(s), nil
 }
